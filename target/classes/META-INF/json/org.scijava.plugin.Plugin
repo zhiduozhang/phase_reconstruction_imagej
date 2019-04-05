@@ -1,0 +1,1 @@
+{"class":"incnas.dhm.DHMReconstruction","values":{"menuPath":"Plugins>DHM Reconstruction","type":"org.scijava.command.Command"}}{"class":"com.mycompany.imagej.GaussFiltering","values":{"menuPath":"Plugins>Gauss Filtering","type":"org.scijava.command.Command"}}
