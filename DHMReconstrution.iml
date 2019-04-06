@@ -92,6 +92,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.github.jnr:jnr-ffi:1.0.7" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.github.jnr:jffi:1.2.7" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.github.jnr:jffi:native:1.2.7" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.yaml:snakeyaml:1.13" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.jcraft:jzlib:1.1.3" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.headius:invokebinder:1.2" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.martiansoftware:nailgun-server:0.9.1" level="project" />
@@ -290,15 +291,5 @@
     <orderEntry type="library" name="Maven: org.bytedeco.javacpp-presets:tesseract:macosx-x86_64:4.0.0-beta.3-1.4.2" level="project" />
     <orderEntry type="library" name="Maven: org.bytedeco.javacpp-presets:tesseract:windows-x86:4.0.0-beta.3-1.4.2" level="project" />
     <orderEntry type="library" name="Maven: org.bytedeco.javacpp-presets:tesseract:windows-x86_64:4.0.0-beta.3-1.4.2" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: sc.fiji:bigdataviewer-vistools:1.0.0-beta-11" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: sc.fiji:bigdataviewer-core:5.0.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: sc.fiji:spim_data:2.2.1" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: cisd:jhdf5:14.12.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: commons-lang:commons-lang:2.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: commons-io:commons-io:2.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jdom:jdom2:2.0.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: com.google.code.gson:gson:2.8.5" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.scijava:ui-behaviour:1.7.3" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.yaml:snakeyaml:1.13" level="project" />
   </component>
 </module>
