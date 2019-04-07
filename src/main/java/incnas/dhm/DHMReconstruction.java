@@ -56,7 +56,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         gd.addCheckbox("Mask + Cropped Region", false);
         gd.addCheckbox("Wrapped Phase", false);
         gd.addCheckbox("Unwrapped Phase", true);
-        gd.addCheckbox("Magnitude (pending)", false);
+        gd.addCheckbox("Magnitude", false);
 
         gd.showDialog();
 

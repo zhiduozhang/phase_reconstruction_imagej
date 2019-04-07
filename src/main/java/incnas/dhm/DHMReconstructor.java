@@ -387,23 +387,28 @@ public class DHMReconstructor {
     }
 
     private ImagePlus retrieve_magnitude(float[][] centered_fftImg){
-        //Propagate fft
+        //Propagate fft_img
+        FloatAngularSpectrum as = new FloatAngularSpectrum(size_x,size_y,config.getLambda(),
+                config.getZ(),config.getDx(),config.getDy());
+        as.diffract(centered_fftImg);
 
         //IFFT
+        FloatFFT_2D fft2D = new FloatFFT_2D(size_x,size_y);
+        ArrayUtils.complexShift(centered_fftImg);
+        fft2D.complexInverse(centered_fftImg,false);
 
         //retrieve magnitude
+        FloatProcessor magnitude_processor = new FloatProcessor(ArrayUtils.modulusSq(centered_fftImg));
 
-        //remove curve
+        this.magnitude_img = new ImagePlus("Magnitude ", magnitude_processor);
 
-        //return magnitude
-
-        return null;
+        return magnitude_img;
     }
 
     private ImagePlus retrieve_phase(float[][] centered_fftImg){
         //TODO: multiply by 2/pi?
 
-        //Propagate fft_img - TODO
+        //Propagate fft_img
         FloatAngularSpectrum as = new FloatAngularSpectrum(size_x,size_y,config.getLambda(),
                 config.getZ(),config.getDx(),config.getDy());
         as.diffract(centered_fftImg);
@@ -479,7 +484,9 @@ public class DHMReconstructor {
         size_x = ip.getWidth();
         size_y = ip.getHeight();
 
-        retrieve_phase(cropOrders(ip,config.getSmall_contraint(),config.getBig_contraint()));
+        float[][] cropped = cropOrders(ip,config.getSmall_contraint(),config.getBig_contraint());
+        retrieve_phase(cropped);
+        retrieve_magnitude(cropped);
 
         Map<String,ImagePlus> imageMap = new HashMap<>();
 
