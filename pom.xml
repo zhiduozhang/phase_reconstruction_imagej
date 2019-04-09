@@ -14,7 +14,7 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>DHMReconstructionPlugin</artifactId>
-	<version>0.2.0</version>
+	<version>0.2.1</version>
 
 	<name>DHM Reconstruction</name>
 	<description>Plugin for Digital Holographic Microscopy reconstruction</description>

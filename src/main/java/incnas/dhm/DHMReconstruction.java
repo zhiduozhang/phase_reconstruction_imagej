@@ -91,23 +91,27 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         DHMReconstructor reconstructor = new DHMReconstructor(config);
         Map<String, ImagePlus> images = reconstructor.reconstruct(img);
 
-        if(show_fft){
+        if(images == null){
+
+        }
+
+        if(show_fft && images.containsKey(DHMReconstructor.FFT)){
             uiService.show("FFT",ImageJFunctions.wrap(images.get(DHMReconstructor.FFT)));
         }
 
-        if(show_mask){
+        if(show_mask && images.containsKey(DHMReconstructor.MASK)){
             uiService.show("Cropping Mask",ImageJFunctions.wrap(images.get(DHMReconstructor.MASK)));
         }
 
-        if(show_wrapped_phase){
+        if(show_wrapped_phase && images.containsKey(DHMReconstructor.WRAPPED)){
             uiService.show("Wrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.WRAPPED)));
         }
 
-        if(show_unwrapped_phase){
+        if(show_unwrapped_phase && images.containsKey(DHMReconstructor.UNWRAPPED)){
             uiService.show("Unwrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.UNWRAPPED)));
         }
 
-        if(show_magnitude){
+        if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
             uiService.show("Magnitude",ImageJFunctions.wrap(images.get(DHMReconstructor.MAGNITUDE)));
         }
     }

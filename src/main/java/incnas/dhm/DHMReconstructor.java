@@ -1,5 +1,11 @@
 package incnas.dhm;
 
+/**
+ * Original matlab code by Xuefei He (Australian National University).
+ *
+ * @author Zhiduo Zhang
+ */
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Measurements;
@@ -329,11 +335,8 @@ public class DHMReconstructor {
 
             if (inc > 250){
                 //TODO: Don't rely on IJ to handle exception
+                this.fft_img = new ImagePlus("FFT ", floatProcessor);
                 IJ.handleException(new Exception("Failed to find threshold"));
-                if(debug){
-                    ImagePlus fft = new ImagePlus("FFT ", floatProcessor);
-                    //uiService.show("FFT",ImageJFunctions.wrap(fft_img));
-                }
 
                 return null;
             }
@@ -475,9 +478,10 @@ public class DHMReconstructor {
      *
      * @param img - Source hologram
      *
-     * @return Map of requested images by name
+     * @return Map of requested images by name or null if we cannot find a threshold.
      */
     public Map<String,ImagePlus> reconstruct(ImagePlus img){
+        Map<String,ImagePlus> imageMap = new HashMap<>();
 
         ImageProcessor ip = img.getProcessor();
 
@@ -485,30 +489,32 @@ public class DHMReconstructor {
         size_y = ip.getHeight();
 
         float[][] cropped = cropOrders(ip,config.getSmall_contraint(),config.getBig_contraint());
-        retrieve_phase(cropped);
-        retrieve_magnitude(cropped);
 
-        Map<String,ImagePlus> imageMap = new HashMap<>();
+        if (cropped != null){
+            retrieve_phase(cropped);
+            retrieve_magnitude(cropped);
+
+            if(config.isShow_wrapped_phase()){
+                imageMap.put(WRAPPED,wrapped_img);
+            }
+
+            if(config.isShow_unwrapped_phase()){
+                imageMap.put(UNWRAPPED,unwrapped_img);
+            }
+
+            if(config.isShow_magnitude()){
+                imageMap.put(MAGNITUDE,magnitude_img);
+            }
+
+            if(config.isShow_mask()){
+                imageMap.put(MASK,mask_img);
+            }
+        }
 
         if(config.isShow_fft()){
             imageMap.put(FFT, fft_img);
         }
 
-        if(config.isShow_mask()){
-            imageMap.put(MASK,mask_img);
-        }
-
-        if(config.isShow_wrapped_phase()){
-            imageMap.put(WRAPPED,wrapped_img);
-        }
-
-        if(config.isShow_unwrapped_phase()){
-            imageMap.put(UNWRAPPED,unwrapped_img);
-        }
-
-        if(config.isShow_magnitude()){
-            imageMap.put(MAGNITUDE,magnitude_img);
-        }
 
         return imageMap;
     }
