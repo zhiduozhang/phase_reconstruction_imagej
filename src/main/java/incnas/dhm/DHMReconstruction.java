@@ -1,6 +1,7 @@
 package incnas.dhm;
 
 import ij.ImagePlus;
+import ij.Prefs;
 import ij.gui.GenericDialog;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
@@ -79,11 +80,13 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         boolean show_unwrapped_phase = gd.getNextBoolean();
         boolean show_magnitude = gd.getNextBoolean();
 
+        boolean black_background = Prefs.blackBackground; //See https://imagej.net/Troubleshooting#The_same_plugin_gives_different_results_on_different_machines.21 and https://imagej.nih.gov/ij/source/ij/plugin/filter/Binary.java
+
         //IJ.newImage(title, "8-bit", width, height, 1);
 
         DHMReconstructor.Config config = new DHMReconstructor.Config(lambda,dx,dy,dz);
         config.update(z,lambda,dx,dy,dz,small_contraint,big_contraint,autofocus,show_fft,show_mask,show_wrapped_phase,
-            show_unwrapped_phase,show_magnitude);
+            show_unwrapped_phase,show_magnitude,black_background);
 
         final ImgPlus image = currentData.getImgPlus();
         ImagePlus img = ImageJFunctions.wrap(image,"Input Image");
@@ -92,7 +95,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         Map<String, ImagePlus> images = reconstructor.reconstruct(img);
 
         if(images == null){
-
+            
         }
 
         if(show_fft && images.containsKey(DHMReconstructor.FFT)){

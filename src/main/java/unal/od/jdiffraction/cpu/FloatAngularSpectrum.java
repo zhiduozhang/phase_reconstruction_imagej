@@ -179,6 +179,14 @@ public class FloatAngularSpectrum extends FloatPropagator {
         fft.complexInverse(field, true);
     }
 
+    public void diffract_fft(float[][] field) {
+        if (M != field.length || 2 * N != field[0].length) {
+            throw new IllegalArgumentException("Array dimension must be " + M + " x " + 2 * N + ".");
+        }
+
+        ArrayUtils.complexMultiplication2(field, kernel);
+    }
+
     public int getM() {
         return M;
     }

@@ -22,7 +22,7 @@ public class CurveFunction implements FunctionNtoM {
             for (int j=0; j<this.size_y; j++){
                 int index = i*this.size_x+j;
                 double estimate = input[0] + input[1]*(i+1) + input[2]*(j+1) + input[3]*(i+1)*(j+1) + input[4]*(i+1)*(i+1) + input[5]*(j+1)*(j+1);
-                output[index] = this.data[i][j] - estimate;
+                output[index] = Math.abs(estimate - this.data[i][j]);
             }
         }
     }
