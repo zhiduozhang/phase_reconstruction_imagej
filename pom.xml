@@ -14,7 +14,7 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>DHMReconstructionPlugin</artifactId>
-	<version>0.2.1</version>
+	<version>0.2.3</version>
 
 	<name>DHM Reconstruction</name>
 	<description>Plugin for Digital Holographic Microscopy reconstruction</description>
@@ -94,75 +94,33 @@
 	</repositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.ddogleg</groupId>
-			<artifactId>ddogleg</artifactId>
-			<version>0.16</version>
-		</dependency>
-
 	<!-- ImgLib2 dependencies -->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-ij</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-ui</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- ImageJ dependencies -->
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-common</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-					<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-					<artifactId>ejml</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- Other dependencies -->
@@ -180,10 +138,10 @@
 		</dependency>
 
 		<!-- Test scope dependencies -->
-		<!--<dependency>
+		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 			<scope>test</scope>
-		</dependency>-->
+		</dependency>
 	</dependencies>
 </project>

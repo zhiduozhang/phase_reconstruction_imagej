@@ -13,19 +13,22 @@ import ij.measure.Measurements;
 import ij.measure.ResultsTable;
 import ij.plugin.ContrastEnhancer;
 import ij.plugin.filter.ParticleAnalyzer;
-import ij.process.*;
+import ij.process.AutoThresholder;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import ijopencv.ij.ImagePlusMatConverter;
 import ijopencv.opencv.MatImagePlusConverter;
-import incnas.dhm.utils.CurveFunction;
+import incnas.dhm.utils.CurveProblem;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresBuilder;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
+import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
+import org.apache.commons.math3.linear.RealVector;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_phase_unwrapping;
-import org.ddogleg.optimization.FactoryOptimization;
-import org.ddogleg.optimization.UnconstrainedLeastSquares;
-import org.ddogleg.optimization.UtilOptimize;
-import org.ddogleg.optimization.functions.FunctionNtoM;
-import org.ejml.data.DMatrixRMaj;
 import org.jtransforms.fft.FloatFFT_2D;
 import unal.od.jdiffraction.cpu.FloatAngularSpectrum;
 import unal.od.jdiffraction.cpu.utils.ArrayUtils;
@@ -33,6 +36,7 @@ import unal.od.jdiffraction.cpu.utils.ArrayUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class DHMReconstructor {
     public final static String FFT = "fft_img";
@@ -527,23 +531,35 @@ public class DHMReconstructor {
         ImagePlus unwrapped_phase = mip.convert(unwrapped_phase_m,ImagePlus.class);
 
         //remove curve
-        FunctionNtoM func = new CurveFunction((FloatProcessor) unwrapped_phase.getProcessor());
-        UnconstrainedLeastSquares<DMatrixRMaj> optimizer = FactoryOptimization.levenbergMarquardt(null, true);
-        optimizer.setFunction(func,null);
+        double[] flat = new double[unwrapped_phase.getWidth()*unwrapped_phase.getHeight()];
+        for(int i=0; i<this.size_x; i++) {
+            for (int j = 0; j < this.size_y; j++) {
+                flat[i * this.size_x + j] = unwrapped_phase.getProcessor().getf(i,j);
+            }
+        }
 
-        optimizer.initialize(new double[]{0.5,0.5,0.5,0.5,0.5,0.5},1e-12,1e-12);
-        UtilOptimize.process(optimizer,500);
+        CurveProblem curveProblem = new CurveProblem((FloatProcessor) unwrapped_phase.getProcessor());
+        LeastSquaresProblem problem = new LeastSquaresBuilder()
+                .start(new double[]{0.5,0.5,0.5,0.5,0.5,0.5})
+                .model(curveProblem)
+                .target(flat)
+                .lazyEvaluation(false)
+                .maxEvaluations(500)
+                .maxIterations(500)
+                .build();
 
-        double optimal[] = new double[unwrapped_phase.getWidth()*unwrapped_phase.getHeight()];
-        func.process(optimizer.getParameters(),optimal);
+        LeastSquaresOptimizer.Optimum optimum = new LevenbergMarquardtOptimizer().optimize(problem);
+        RealVector opt_params = optimum.getPoint();
 
-        log(Arrays.toString(optimizer.getParameters()));
+        double[] optimal = curveProblem.value(opt_params).getFirst().toArray();
 
+        log(Arrays.toString(opt_params.toArray()));
 
+        float[][] unwrapped = unwrapped_phase.getProcessor().getFloatArray();
         float[][] flat_phase = new float[unwrapped_phase.getWidth()][unwrapped_phase.getHeight()];
         for(int i=0; i<unwrapped_phase.getWidth(); i++){
             for (int j=0; j<unwrapped_phase.getHeight(); j++){
-                flat_phase[i][j] = (float) optimal[i*unwrapped_phase.getHeight()+j] * this.config.getDz();
+                flat_phase[i][j] = (float) Math.abs(optimal[i*unwrapped_phase.getHeight()+j]-unwrapped[i][j]) * this.config.getDz();
                 flat_phase[i][j] = Math.max(flat_phase[i][j],0);
             }
         }
