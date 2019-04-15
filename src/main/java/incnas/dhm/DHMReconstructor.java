@@ -602,9 +602,7 @@ public class DHMReconstructor {
                 imageMap.put(WRAPPED,wrapped_img);
             }
 
-            if(config.isShow_unwrapped_phase()){
-                imageMap.put(UNWRAPPED,unwrapped_img);
-            }
+            imageMap.put(UNWRAPPED,unwrapped_img);
 
             if(config.isShow_magnitude()){
                 imageMap.put(MAGNITUDE,magnitude_img);

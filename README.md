@@ -14,7 +14,6 @@ Once installed, the plugin will appear near the bottom of the plugins dropdown. 
 
 ### To Do List:
 
-* Save settings
 * Test for image stacks
 * Autofocus
-* Redesign GUI
+* Add 3D Surface plot

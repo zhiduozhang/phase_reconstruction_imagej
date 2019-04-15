@@ -3,6 +3,7 @@ package incnas.dhm;
 import ij.ImagePlus;
 import ij.Prefs;
 import ij.gui.GenericDialog;
+import ij.plugin.SurfacePlotter;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ImgPlus;
@@ -40,52 +41,93 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
 
     @Override
     public void run() {
+        //Load Prefs
+        float wavelength = (float) Prefs.get("dhm.reconstruction.wavelength", 0.635);
+        float dx = (float) Prefs.get("dhm.reconstruction.dx", 0.434);
+        float dy = (float) Prefs.get("dhm.reconstruction.dy", 0.434);
+        float dz = (float) Prefs.get("dhm.reconstruction.dz", 1.503);
+        int small_constraint = Prefs.getInt("dhm.reconstruction.small_constraint", 25);
+        int large_constraint = Prefs.getInt("dhm.reconstruction.large_constraint", 4);
+
+        boolean autofocus = Prefs.get("dhm.recosntruction.autofocus", false);
+        float focus_distance = (float) Prefs.get("dhm.reconstruction.focus_distance", 0);
+
+        boolean show_fft = Prefs.get("dhm.reconstruction.show_fft",false);
+        boolean show_mask = Prefs.get("dhm.reconstruction.show_mask",false);
+        boolean show_wrapped_phase = Prefs.get("dhm.reconstruction.show_wrapped",false);
+        boolean show_unwrapped_phase = Prefs.get("dhm.reconstruction.show_unwrapped",true);
+        boolean show_magnitude = Prefs.get("dhm.reconstruction.show_magnitude",false);
+        //oolean show_3d_phase = Prefs.get("dhm.reconstruction.show_3d_phase",false);
+
         GenericDialog gd = new GenericDialog("DHM Reconstruction");
         //gd.addMessage("");
-        gd.addNumericField("Wavelength (um)", 0.635,3);
-        gd.addNumericField("dx", 0.434, 3);
-        gd.addNumericField("dy", 0.434, 3);
-        gd.addNumericField("dz", 1.503, 3);
-        gd.addNumericField("Small Constraint", 25, 0);
-        gd.addNumericField("Large Constraint", 4, 0);
+        gd.addNumericField("Wavelength (um)", wavelength,3);
+        gd.addNumericField("dx", dx, 3);
+        gd.addNumericField("dy", dy, 3);
+        gd.addNumericField("dz", dz, 3);
+        gd.addNumericField("Small Constraint", small_constraint, 0);
+        gd.addNumericField("Large Constraint", large_constraint, 0);
 
-        gd.addCheckbox("Enable Autofocus (pending)",true);
-        gd.addNumericField("Focus Distance (um)", 0, 3);
+        gd.addCheckbox("Enable Autofocus (pending)",autofocus);
+        gd.addNumericField("Focus Distance (um)", focus_distance, 3);
 
         gd.addMessage("Output Images:");
-        gd.addCheckbox("FFT",false);
-        gd.addCheckbox("Mask + Cropped Region", false);
-        gd.addCheckbox("Wrapped Phase", false);
-        gd.addCheckbox("Unwrapped Phase", true);
-        gd.addCheckbox("Magnitude", false);
+        gd.addCheckbox("FFT",show_fft);
+        gd.addCheckbox("Mask + Cropped Region", show_mask);
+        gd.addCheckbox("Wrapped Phase", show_wrapped_phase);
+        gd.addCheckbox("Unwrapped Phase", show_unwrapped_phase);
+        //gd.addCheckbox("Show 3D Phase", show_unwrapped_phase);
+        gd.addCheckbox("Magnitude", show_magnitude);
 
         gd.showDialog();
 
         if (gd.wasCanceled()) return;
 
-        float lambda= (float) gd.getNextNumber();
-        float dx = (float) gd.getNextNumber();
-        float dy = (float) gd.getNextNumber();
-        float dz = (float) gd.getNextNumber();
+        wavelength= (float) gd.getNextNumber();
+        dx = (float) gd.getNextNumber();
+        dy = (float) gd.getNextNumber();
+        dz = (float) gd.getNextNumber();
 
-        int small_contraint = (int) gd.getNextNumber();
-        int big_contraint = (int) gd.getNextNumber();
+        small_constraint = (int) gd.getNextNumber();
+        large_constraint = (int) gd.getNextNumber();
 
-        boolean autofocus = gd.getNextBoolean();
-        float z = (float) gd.getNextNumber();
+        autofocus = gd.getNextBoolean();
+        focus_distance = (float) gd.getNextNumber();
 
-        boolean show_fft = gd.getNextBoolean();
-        boolean show_mask = gd.getNextBoolean();
-        boolean show_wrapped_phase = gd.getNextBoolean();
-        boolean show_unwrapped_phase = gd.getNextBoolean();
-        boolean show_magnitude = gd.getNextBoolean();
+        show_fft = gd.getNextBoolean();
+        show_mask = gd.getNextBoolean();
+        show_wrapped_phase = gd.getNextBoolean();
+        show_unwrapped_phase = gd.getNextBoolean();
+        //show_3d_phase = gd.getNextBoolean();
+        show_magnitude = gd.getNextBoolean();
 
+        //Save Prefs
+        Prefs.set("dhm.reconstruction.wavelength", wavelength);
+        Prefs.set("dhm.reconstruction.dx", dx);
+        Prefs.set("dhm.reconstruction.dy", dy);
+        Prefs.set("dhm.reconstruction.dz", dz);
+        Prefs.set("dhm.reconstruction.small_constraint", small_constraint);
+        Prefs.set("dhm.reconstruction.large_constraint", large_constraint);
+
+        Prefs.set("dhm.recosntruction.autofocus", autofocus);
+        Prefs.set("dhm.reconstruction.focus_distance", focus_distance);
+
+        Prefs.set("dhm.reconstruction.show_fft",show_fft);
+        Prefs.set("dhm.reconstruction.show_mask",show_mask);
+        Prefs.set("dhm.reconstruction.show_wrapped",show_wrapped_phase);
+        Prefs.set("dhm.reconstruction.show_unwrapped",show_unwrapped_phase);
+        Prefs.set("dhm.reconstruction.show_magnitude",show_magnitude);
+        //Prefs.set("dhm.reconstruction.show_3d_phase",show_3d_phase);
+
+        Prefs.savePreferences();
+
+        //Reconstruct Hologram
         boolean black_background = Prefs.blackBackground; //See https://imagej.net/Troubleshooting#The_same_plugin_gives_different_results_on_different_machines.21 and https://imagej.nih.gov/ij/source/ij/plugin/filter/Binary.java
 
         //IJ.newImage(title, "8-bit", width, height, 1);
 
-        DHMReconstructor.Config config = new DHMReconstructor.Config(lambda,dx,dy,dz);
-        config.update(z,lambda,dx,dy,dz,small_contraint,big_contraint,autofocus,show_fft,show_mask,show_wrapped_phase,
+        DHMReconstructor.Config config = new DHMReconstructor.Config(wavelength,dx,dy,dz);
+        config.update(focus_distance,wavelength,dx,dy,dz,small_constraint,large_constraint,autofocus,show_fft,show_mask,show_wrapped_phase,
             show_unwrapped_phase,show_magnitude,black_background);
 
         final ImgPlus image = currentData.getImgPlus();
@@ -117,6 +159,10 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
             uiService.show("Magnitude",ImageJFunctions.wrap(images.get(DHMReconstructor.MAGNITUDE)));
         }
+
+        /*if(show_3d_phase){
+            new SurfacePlotter().makeSurfacePlot(images.get(DHMReconstructor.UNWRAPPED).getProcessor());
+        }*/
     }
 
     /**
