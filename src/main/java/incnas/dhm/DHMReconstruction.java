@@ -57,7 +57,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         boolean show_wrapped_phase = Prefs.get("dhm.reconstruction.show_wrapped",false);
         boolean show_unwrapped_phase = Prefs.get("dhm.reconstruction.show_unwrapped",true);
         boolean show_magnitude = Prefs.get("dhm.reconstruction.show_magnitude",false);
-        //oolean show_3d_phase = Prefs.get("dhm.reconstruction.show_3d_phase",false);
+        boolean show_3d_phase = Prefs.get("dhm.reconstruction.show_3d_phase",false);
 
         GenericDialog gd = new GenericDialog("DHM Reconstruction");
         //gd.addMessage("");
@@ -76,7 +76,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         gd.addCheckbox("Mask + Cropped Region", show_mask);
         gd.addCheckbox("Wrapped Phase", show_wrapped_phase);
         gd.addCheckbox("Unwrapped Phase", show_unwrapped_phase);
-        //gd.addCheckbox("Show 3D Phase", show_unwrapped_phase);
+        gd.addCheckbox("Show 3D Phase", show_3d_phase);
         gd.addCheckbox("Magnitude", show_magnitude);
 
         gd.showDialog();
@@ -98,7 +98,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         show_mask = gd.getNextBoolean();
         show_wrapped_phase = gd.getNextBoolean();
         show_unwrapped_phase = gd.getNextBoolean();
-        //show_3d_phase = gd.getNextBoolean();
+        show_3d_phase = gd.getNextBoolean();
         show_magnitude = gd.getNextBoolean();
 
         //Save Prefs
@@ -117,7 +117,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
         Prefs.set("dhm.reconstruction.show_wrapped",show_wrapped_phase);
         Prefs.set("dhm.reconstruction.show_unwrapped",show_unwrapped_phase);
         Prefs.set("dhm.reconstruction.show_magnitude",show_magnitude);
-        //Prefs.set("dhm.reconstruction.show_3d_phase",show_3d_phase);
+        Prefs.set("dhm.reconstruction.show_3d_phase",show_3d_phase);
 
         Prefs.savePreferences();
 
@@ -156,13 +156,17 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
             uiService.show("Unwrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.UNWRAPPED)));
         }
 
+        if(show_3d_phase){
+            if(!show_unwrapped_phase){
+                uiService.show("Unwrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.UNWRAPPED)));
+            }
+
+            new SurfacePlotter().run("");
+        }
+
         if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
             uiService.show("Magnitude",ImageJFunctions.wrap(images.get(DHMReconstructor.MAGNITUDE)));
         }
-
-        /*if(show_3d_phase){
-            new SurfacePlotter().makeSurfacePlot(images.get(DHMReconstructor.UNWRAPPED).getProcessor());
-        }*/
     }
 
     /**

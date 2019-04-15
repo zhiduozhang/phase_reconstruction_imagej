@@ -16,4 +16,3 @@ Once installed, the plugin will appear near the bottom of the plugins dropdown. 
 
 * Test for image stacks
 * Autofocus
-* Add 3D Surface plot

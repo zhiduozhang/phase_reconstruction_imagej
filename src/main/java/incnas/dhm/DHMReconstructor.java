@@ -472,18 +472,23 @@ public class DHMReconstructor {
     }
 
     private ImagePlus retrieve_magnitude(float[][] centered_fftImg){
+        float[][] copy = new float[this.size_x][this.size_y*2];
+        for(int i=0; i<this.size_x; i++){
+            if (this.size_y >= 0) System.arraycopy(centered_fftImg[i], 0, copy[i], 0, this.size_y);
+        }
+
         //Propagate fft_img
         FloatAngularSpectrum as = new FloatAngularSpectrum(size_x,size_y,config.getLambda(),
                 config.getZ(),config.getDx(),config.getDy());
-        as.diffract_fft(centered_fftImg);
+        as.diffract_fft(copy);
 
         //IFFT
         FloatFFT_2D fft2D = new FloatFFT_2D(size_x,size_y);
-        ArrayUtils.complexShift(centered_fftImg);
-        fft2D.complexInverse(centered_fftImg,true);
+        ArrayUtils.complexShift(copy);
+        fft2D.complexInverse(copy,true);
 
         //retrieve magnitude
-        FloatProcessor magnitude_processor = new FloatProcessor(ArrayUtils.modulus(centered_fftImg));
+        FloatProcessor magnitude_processor = new FloatProcessor(ArrayUtils.modulus(copy));
 
         this.magnitude_img = new ImagePlus("Magnitude ", magnitude_processor);
 
