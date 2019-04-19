@@ -540,7 +540,7 @@ public class DHMReconstructor {
         double[] flat = new double[unwrapped_phase.getWidth()*unwrapped_phase.getHeight()];
         for(int i=0; i<this.size_x; i++) {
             for (int j = 0; j < this.size_y; j++) {
-                flat[i * this.size_x + j] = unwrapped_phase.getProcessor().getf(i,j);
+                flat[i * this.size_y + j] = unwrapped_phase.getProcessor().getf(i,j);
             }
         }
 

@@ -14,5 +14,4 @@ Once installed, the plugin will appear near the bottom of the plugins dropdown. 
 
 ### To Do List:
 
-* Test for image stacks
 * Autofocus
