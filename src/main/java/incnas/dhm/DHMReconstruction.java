@@ -148,26 +148,33 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
                 ImagePlus input = new ImagePlus("",img.getImageStack().getProcessor(i));
 
                 DHMReconstructor reconstructor = new DHMReconstructor(config);
-                Map<String, ImagePlus> images = reconstructor.reconstruct(input);
+                if(reconstructor.reconstruct(input)) {
+                    Map<String, ImagePlus> images = reconstructor.getImageMap();
 
-                if(show_fft && images.containsKey(DHMReconstructor.FFT)){
-                    fftStack.addSlice(images.get(DHMReconstructor.FFT).getProcessor());
-                }
+                    if(show_fft && images.containsKey(DHMReconstructor.FFT)){
+                        fftStack.addSlice(images.get(DHMReconstructor.FFT).getProcessor());
+                    }
 
-                if(show_mask && images.containsKey(DHMReconstructor.MASK)){
-                    maskStack.addSlice(images.get(DHMReconstructor.MASK).getProcessor());
-                }
+                    if(show_mask && images.containsKey(DHMReconstructor.MASK)){
+                        maskStack.addSlice(images.get(DHMReconstructor.MASK).getProcessor());
+                    }
 
-                if(show_wrapped_phase && images.containsKey(DHMReconstructor.WRAPPED)){
-                    wrappedStack.addSlice(images.get(DHMReconstructor.WRAPPED).getProcessor());
-                }
+                    if(show_wrapped_phase && images.containsKey(DHMReconstructor.WRAPPED)){
+                        wrappedStack.addSlice(images.get(DHMReconstructor.WRAPPED).getProcessor());
+                    }
 
-                if(images.containsKey(DHMReconstructor.UNWRAPPED)){
-                    unwrappedStack.addSlice(images.get(DHMReconstructor.UNWRAPPED).getProcessor());
-                }
+                    if(images.containsKey(DHMReconstructor.UNWRAPPED)){
+                        unwrappedStack.addSlice(images.get(DHMReconstructor.UNWRAPPED).getProcessor());
+                    }
 
-                if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
-                    magnitudeStack.addSlice(images.get(DHMReconstructor.MAGNITUDE).getProcessor());
+                    if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
+                        magnitudeStack.addSlice(images.get(DHMReconstructor.MAGNITUDE).getProcessor());
+                    }
+                } else { //Failed to get correct images
+                    Map<String, ImagePlus> images = reconstructor.getImageMap();
+
+                    images.get(DHMReconstructor.FFT).show();
+                    images.get(DHMReconstructor.MASK).show();
                 }
             }
 
@@ -203,41 +210,6 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
             if(show_magnitude && magnitudeStack.getSize() > 0){
                 //uiService.show("Magnitude",ImageJFunctions.wrap(new ImagePlus("Magnitude",magnitudeStack)));
                 uiService.show(new ImagePlus("Magnitude",magnitudeStack));
-            }
-        }else{
-            DHMReconstructor reconstructor = new DHMReconstructor(config);
-            Map<String, ImagePlus> images = reconstructor.reconstruct(img);
-
-            if(images == null){
-
-            }
-
-            if(show_fft && images.containsKey(DHMReconstructor.FFT)){
-                uiService.show("FFT",ImageJFunctions.wrap(images.get(DHMReconstructor.FFT)));
-            }
-
-            if(show_mask && images.containsKey(DHMReconstructor.MASK)){
-                uiService.show("Cropping Mask",ImageJFunctions.wrap(images.get(DHMReconstructor.MASK)));
-            }
-
-            if(show_wrapped_phase && images.containsKey(DHMReconstructor.WRAPPED)){
-                uiService.show("Wrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.WRAPPED)));
-            }
-
-            if(show_unwrapped_phase && images.containsKey(DHMReconstructor.UNWRAPPED)){
-                uiService.show("Unwrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.UNWRAPPED)));
-            }
-
-            if(show_3d_phase){
-                if(!show_unwrapped_phase){
-                    uiService.show("Unwrapped Phase",ImageJFunctions.wrap(images.get(DHMReconstructor.UNWRAPPED)));
-                }
-
-                new SurfacePlotter().run("");
-            }
-
-            if(show_magnitude && images.containsKey(DHMReconstructor.MAGNITUDE)){
-                uiService.show("Magnitude",ImageJFunctions.wrap(images.get(DHMReconstructor.MAGNITUDE)));
             }
         }
     }

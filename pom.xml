@@ -14,7 +14,7 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>DHMReconstructionPlugin</artifactId>
-	<version>0.2.6</version>
+	<version>0.2.7</version>
 
 	<name>DHM Reconstruction</name>
 	<description>Plugin for Digital Holographic Microscopy reconstruction</description>
@@ -131,11 +131,11 @@
 			<!--<classifier>with-dependencies</classifier>-->
 		</dependency>
 
-		<dependency>
+		<!--<dependency>
 			<groupId>io.github.joheras</groupId>
 			<artifactId>IJ-OpenCV</artifactId>
 			<version>1.2.1-SNAPSHOT</version>
-		</dependency>
+		</dependency>-->
 
 		<!-- Test scope dependencies -->
 		<dependency>

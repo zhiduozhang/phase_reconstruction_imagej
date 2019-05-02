@@ -28,6 +28,8 @@ package unal.od.jdiffraction.cpu.utils;
  * @author Carlos Trujillo (catrujila@unal.edu.co)
  * @author Jorge Garcia-Sucerquia (jigarcia@unal.edu.co)
  *
+ * @contributor Zhiduo Zhang (Updated fftshift+ifftshift functions)
+ *
  * @since JDiffraction 1.1
  */
 public class ArrayUtils {
@@ -720,12 +722,12 @@ public class ArrayUtils {
         int M = a.length;
         int N = a[0].length / 2;
 
-        int M2 = M / 2;
-        int N2 = N / 2;
+        int M2 = (int) Math.floor(M / 2.0);
+        int N2 = (int) Math.floor(N / 2.0);
 
         float tmp;
 
-        for (int i = 0; i < M2; i++) {
+        /*for (int i = 0; i < M2; i++) {
             for (int j = 0; j < N2; j++) {
                 //Real shift
                 tmp = a[i][2 * j];
@@ -744,6 +746,95 @@ public class ArrayUtils {
                 tmp = a[i + M2][2 * j + 1];
                 a[i + M2][2 * j + 1] = a[i][2 * (j + N2) + 1];
                 a[i][2 * (j + N2) + 1] = tmp;
+            }
+        }*/
+
+        float[][] quad1 = new float[M2][N2*2];
+        float[][] quad2 = new float[M - M2][N2*2];
+        float[][] quad3 = new float[M - M2][(N - N2)*2];
+        float[][] quad4 = new float[M2][(N - N2)*2];
+
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < N*2; j++) {
+                if (i < M2 && j < N2*2) { //
+                    quad1[i][j] = a[i][j];
+                } else if (i < M2) { //Implicit j>=N2
+                    quad4[i][j - (N2*2)] = a[i][j];
+                } else if (j < N2*2) { //Implicit i>=M2
+                    quad2[i - M2][j] = a[i][j];
+                } else {
+                    quad3[i - M2][j - (N2*2)] = a[i][j];
+                }
+            }
+        }
+
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < N*2; j++) {
+                if (i < M - M2 && j < (N - N2)*2) { //Top Left
+                    a[i][j] = quad3[i][j];
+                } else if (i < M - M2) { //Implicit j>N-N2. Bottom Left
+                    a[i][j] = quad2[i][j - (N - N2)*2];
+                } else if (j < (N - N2)*2) { //Implicit i>M-M2. Top right
+                    a[i][j] = quad4[i - M + M2][j];
+                } else {
+                    a[i][j] = quad1[i - M + M2][j - (N - N2)*2]; //Bottom right
+                }
+            }
+        }
+    }
+
+    /**
+     * Performs the circular shifting of a complex array, leaving the result in
+     * {@code a}.
+     * <p>
+     * {@code
+     * a b -&gt; d c
+     * c d       b a
+     * }
+     *
+     * @param a complex array
+     */
+    public static void complexInverseShift(float[][] a) {
+        checkDimension(a);
+        int M = a.length;
+        int N = a[0].length / 2;
+
+        if(N % 2 == 1){
+            N++;
+        }
+
+        int M2 = (int) Math.ceil(M / 2.0);
+
+        float[][] quad1 = new float[M2][N];
+        float[][] quad2 = new float[M - M2][N];
+        float[][] quad3 = new float[M - M2][N];
+        float[][] quad4 = new float[M2][N];
+
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < a[0].length; j++) {
+                if (i < M2 && j < N) { //
+                    quad1[i][j] = a[i][j];
+                } else if (i < M2) { //Implicit j>=N
+                    quad4[i][j - N] = a[i][j];
+                } else if (j < N) { //Implicit i>=M2
+                    quad2[i - M2][j] = a[i][j];
+                } else {
+                    quad3[i - M2][j - N] = a[i][j];
+                }
+            }
+        }
+
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < a[0].length; j++) {
+                if (i < M - M2 && j < N) { //Top Left
+                    a[i][j] = quad3[i][j];
+                } else if (i < M - M2) { //Implicit j>N. Bottom Left
+                    a[i][j] = quad2[i][j - N];
+                } else if (j < N) { //Implicit i>M-M2. Top right
+                    a[i][j] = quad4[i - M + M2][j];
+                } else {
+                    a[i][j] = quad1[i - M + M2][j - N]; //Bottom right
+                }
             }
         }
     }

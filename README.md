@@ -3,10 +3,7 @@
 ### How to install:
 
 Follow the instructions at the start of https://imagej.net/Installing_3rd_party_plugins by adding the following update sites:
-https://sites.imagej.net/DHMReconstruction/
-https://sites.imagej.net/IJ-OpenCV/
-
-NOTE: IJ-OpenCV must appear after DHMReconstruction on the update list, otherwise some libraries will not download correctly. 
+https://sites.imagej.net/DHMReconstruction/ 
 
 ### How to use
 
@@ -15,3 +12,6 @@ Once installed, the plugin will appear near the bottom of the plugins dropdown. 
 ### To Do List:
 
 * Autofocus
+* Add errors for invalid values
+* Automatically convert RGB images to 16Bit images
+* Improve runtime

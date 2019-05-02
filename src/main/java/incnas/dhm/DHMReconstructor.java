@@ -17,8 +17,6 @@ import ij.process.AutoThresholder;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ijopencv.ij.ImagePlusMatConverter;
-import ijopencv.opencv.MatImagePlusConverter;
 import incnas.dhm.utils.CurveProblem;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -27,8 +25,6 @@ import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
 import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
 import org.apache.commons.math3.linear.RealVector;
-import org.bytedeco.javacpp.opencv_core;
-import org.bytedeco.javacpp.opencv_phase_unwrapping;
 import org.jtransforms.fft.FloatFFT_2D;
 import unal.od.jdiffraction.cpu.FloatAngularSpectrum;
 import unal.od.jdiffraction.cpu.utils.ArrayUtils;
@@ -50,11 +46,15 @@ public class DHMReconstructor {
 
     static boolean debug = false;
 
+    private Map<String,ImagePlus> imageMap;
+
     private ImagePlus fft_img = null;
     private ImagePlus mask_img = null;
     private ImagePlus wrapped_img = null;
     private ImagePlus unwrapped_img = null;
     private ImagePlus magnitude_img = null;
+
+
 
     private static void log(String log){
         //TODO: Display in ImageJ Log
@@ -248,6 +248,20 @@ public class DHMReconstructor {
         fft2D.complexForward(imgFFT);
         ArrayUtils.complexShift(imgFFT);
 
+        float[][] fftCopy = new float[this.size_x][complex_size_y];
+
+        for(int i=0; i<this.size_x;i++){
+            fftCopy[i] = imgFFT[i].clone();
+        }
+
+        ArrayUtils.complexInverseShift(fftCopy);
+        ArrayUtils.complexShift(fftCopy);
+
+        for(int i=0; i<this.size_x;i++){
+            //System.out.println(Arrays.equals(fftCopy[i],imgFFT[i]));
+        }
+
+
         //FFT Log Magnitude
         float[][] magImgFFt = ArrayUtils.modulus(imgFFT);
         FloatProcessor floatProcessor = new FloatProcessor(magImgFFt);
@@ -320,7 +334,7 @@ public class DHMReconstructor {
             }
 
             ByteProcessor cleanMask = new ByteProcessor(this.size_x,this.size_y,int_mask);
-            maskStack.addSlice(mask);
+            //maskStack.addSlice(mask);
 
             Img ImageMask = ImageJFunctions.wrap(new ImagePlus("Mask",cleanMask));
 
@@ -357,6 +371,8 @@ public class DHMReconstructor {
 
             iy = rt.size();
 
+            maskStack.addSlice(pa.getOutputImage().getProcessor());
+
             if (rt.size() == 3) {
 
                 for (float x : rt.getColumn(ResultsTable.AREA)) {
@@ -375,7 +391,8 @@ public class DHMReconstructor {
             if (inc+level > max){
                 //TODO: Don't rely on IJ to handle exception
                 //this.fft_img = new ImagePlus("FFT ", cleanMask);
-                this.fft_img = new ImagePlus("FFT ", maskStack);
+                this.mask_img = new ImagePlus("Mask ", maskStack);
+                this.fft_img = new ImagePlus("FFT", floatProcessor);
                 IJ.handleException(new Exception("Failed to find threshold. Max reached " + (inc+level)));
 
                 return null;
@@ -383,7 +400,6 @@ public class DHMReconstructor {
         }
 
         log("Found threshold!");
-
 
         int min_x = (int) rt.getColumn(ResultsTable.X_CENTROID)[0];
         int min_index = 0;
@@ -402,6 +418,13 @@ public class DHMReconstructor {
 
         int crop_x = (int) rt.getColumn(ResultsTable.ROI_X)[min_index];
         int crop_y = (int) rt.getColumn(ResultsTable.ROI_Y)[min_index];
+
+        //crop_x = 129-1;
+        //crop_y = 134-1;
+
+        //crop_width = 32;
+        //crop_height_2 = 44;
+
         float[][] cropped_area = new float[crop_width][crop_height_2];
 
         //Retrieve complex masked
@@ -443,14 +466,30 @@ public class DHMReconstructor {
             }
         }
 
+        //int displacement_x = (int) Math.round((this.size_x-crop_width)/2.0) + 1;
+        //int displacement_y = (int) Math.round((complex_size_y-crop_height_2)/2.0) + 2;
+
+        int displacement_x = (int) Math.round((this.size_x-crop_width)/2.0);
+        int displacement_y = (int) Math.round((complex_size_y-crop_height_2)/2.0);
+
+        if(displacement_y % 2 == 1){
+            displacement_y++;
+        }
+
         int new_displacement_x = (int) Math.round((this.size_x-bound_width)/2.0);
         int new_displacement_y = (int) Math.round((complex_size_y-bound_height_2)/2.0);
 
-        for(int i=0; i<bound_width; i++){
+        for(int i=0; i<crop_width; i++){
+            for(int j=0; j<crop_height_2; j++){
+                centered_complex_img[i+displacement_x][j+displacement_y] = cropped_area[i][j];
+            }
+        }
+
+        /*for(int i=0; i<bound_width; i++){
             for(int j=0; j<bound_height_2; j++){
                 centered_complex_img[i+new_displacement_x][j+new_displacement_y] = new_crop[i][j];
             }
-        }
+        }*/
 
         //floatProcessor.drawRect(crop_x,crop_y,crop_width,crop_height_2/2);
         ImagePlus fft = new ImagePlus("FFT ", floatProcessor);
@@ -465,7 +504,7 @@ public class DHMReconstructor {
         abs_fp.log();
         ImagePlus abs_img = new ImagePlus("Abs FFT ", abs_fp);
 
-        this.mask_img = abs_img;
+        this.fft_img = abs_img;
 
         //return centered image
         return centered_complex_img;
@@ -499,9 +538,15 @@ public class DHMReconstructor {
     private ImagePlus retrieve_phase(float[][] centered_fftImg){
         for(int i=0; i<this.size_x; i++){
             for(int j=0; j<this.size_y;j++){
-                centered_fftImg[i][j] = (float) (centered_fftImg[i][j]*Math.PI/2);
+                //centered_fftImg[i][j] = (float) (centered_fftImg[i][j]*Math.PI/2);
             }
         }
+
+        System.out.println(centered_fftImg.length);
+        System.out.println(centered_fftImg[0].length);
+
+        System.out.println(size_x);
+        System.out.println(size_y);
 
         //Propagate fft_img
         FloatAngularSpectrum as = new FloatAngularSpectrum(size_x,size_y,config.getLambda(),
@@ -510,7 +555,17 @@ public class DHMReconstructor {
 
         //IFFT
         FloatFFT_2D fft2D = new FloatFFT_2D(size_x,size_y);
-        ArrayUtils.complexShift(centered_fftImg);
+        ArrayUtils.complexInverseShift(centered_fftImg);
+
+        float[][] abs = ArrayUtils.modulus(centered_fftImg);
+        FloatProcessor abs_fp = new FloatProcessor(abs);
+        abs_fp.add(1);
+        abs_fp.log();
+        ImagePlus abs_img = new ImagePlus("Abs FFT ", abs_fp);
+
+        this.mask_img = abs_img;
+
+
         fft2D.complexInverse(centered_fftImg,true);
 
         //retrieve phase
@@ -521,7 +576,7 @@ public class DHMReconstructor {
         ImagePlus wrapped_phase = new ImagePlus("Wrapped Phase ", phase_processor);
 
         //unwrap phase
-        ImagePlusMatConverter ic = new ImagePlusMatConverter();
+        /*ImagePlusMatConverter ic = new ImagePlusMatConverter();
         MatImagePlusConverter mip = new MatImagePlusConverter();
 
         opencv_core.Mat wrapped_phase_m = ic.convert(wrapped_phase, opencv_core.Mat.class);
@@ -534,7 +589,16 @@ public class DHMReconstructor {
         opencv_phase_unwrapping.HistogramPhaseUnwrapping phaseUnwrapper = opencv_phase_unwrapping.HistogramPhaseUnwrapping.create(params);
         phaseUnwrapper.unwrapPhaseMap(wrapped_phase_m,unwrapped_phase_m);
 
-        ImagePlus unwrapped_phase = mip.convert(unwrapped_phase_m,ImagePlus.class);
+        ImagePlus unwrapped_phase = mip.convert(unwrapped_phase_m,ImagePlus.class);*/
+
+        MigualPhaseUnwrapper migualPhaseUnwrapper = new MigualPhaseUnwrapper();
+        float[][] migualPhase = migualPhaseUnwrapper.unwrap(wrapped_phase.getProcessor().getFloatArray(),wrapped_phase.getWidth(),wrapped_phase.getHeight());
+
+        for(float[] row : wrapped_phase.getProcessor().getFloatArray()) {
+            //System.out.println(Arrays.toString(row));
+        }
+
+        ImagePlus unwrapped_phase = new ImagePlus("Unwrapped Phase", new FloatProcessor(migualPhase));
 
         //remove curve
         double[] flat = new double[unwrapped_phase.getWidth()*unwrapped_phase.getHeight()];
@@ -564,7 +628,7 @@ public class DHMReconstructor {
         float[][] unwrapped = unwrapped_phase.getProcessor().getFloatArray();
         float[][] flat_phase = new float[unwrapped_phase.getWidth()][unwrapped_phase.getHeight()];
         for(int i=0; i<unwrapped_phase.getWidth(); i++){
-            for (int j=0; j<unwrapped_phase.getHeight(); j++){
+            for(int j=0; j<unwrapped_phase.getHeight(); j++){
                 flat_phase[i][j] = (float) Math.abs(optimal[i*unwrapped_phase.getHeight()+j]-unwrapped[i][j]) * this.config.getDz();
                 flat_phase[i][j] = Math.max(flat_phase[i][j],0);
             }
@@ -573,6 +637,7 @@ public class DHMReconstructor {
         FloatProcessor flat_processor = new FloatProcessor(flat_phase);
         flat_processor.blurGaussian(3);
         ImagePlus flat_img = new ImagePlus("Flat Phase", flat_processor);
+        //wrapped_phase = new ImagePlus("Unwrapped Phase", new FloatProcessor(migualPhase));
 
         this.unwrapped_img = flat_img;
         this.wrapped_img = wrapped_phase;
@@ -588,10 +653,10 @@ public class DHMReconstructor {
      *
      * @param img - Source hologram
      *
-     * @return Map of requested images by name or null if we cannot find a threshold.
+     * @return True if success. Else false.
      */
-    public Map<String,ImagePlus> reconstruct(ImagePlus img){
-        Map<String,ImagePlus> imageMap = new HashMap<>();
+    public boolean reconstruct(ImagePlus img){
+        imageMap = new HashMap<>();
 
         ImageProcessor ip = img.getProcessor();
 
@@ -600,28 +665,33 @@ public class DHMReconstructor {
 
         float[][] cropped = cropOrders(ip,config.getSmall_contraint(),config.getBig_contraint());
 
+        if(cropped == null){
+            imageMap.put(FFT, this.fft_img);
+            imageMap.put(MASK, this.mask_img);
+            return false;
+        }
+
         float[][] mag = new float[this.size_x][this.size_y*2];
+
         for(int i=0; i<this.size_x; i++){
             if (this.size_y >= 0) System.arraycopy(cropped[i], 0, mag[i], 0, this.size_y);
         }
 
-        if (cropped != null){
-            retrieve_phase(cropped);
-            retrieve_magnitude(mag);
+        retrieve_phase(cropped);
+        retrieve_magnitude(mag);
 
-            if(config.isShow_wrapped_phase()){
-                imageMap.put(WRAPPED,wrapped_img);
-            }
+        if(config.isShow_wrapped_phase()){
+            imageMap.put(WRAPPED,wrapped_img);
+        }
 
-            imageMap.put(UNWRAPPED,unwrapped_img);
+        imageMap.put(UNWRAPPED,unwrapped_img);
 
-            if(config.isShow_magnitude()){
-                imageMap.put(MAGNITUDE,magnitude_img);
-            }
+        if(config.isShow_magnitude()){
+            imageMap.put(MAGNITUDE,magnitude_img);
+        }
 
-            if(config.isShow_mask()){
-                imageMap.put(MASK,mask_img);
-            }
+        if(config.isShow_mask()){
+            imageMap.put(MASK,mask_img);
         }
 
         if(config.isShow_fft()){
@@ -629,6 +699,16 @@ public class DHMReconstructor {
         }
 
 
+        return true;
+    }
+
+
+    /**
+     * If true, gets images requested, otherwise, shows thresholds and fft.
+     *
+     * @return
+     */
+    public Map<String, ImagePlus> getImageMap() {
         return imageMap;
     }
 

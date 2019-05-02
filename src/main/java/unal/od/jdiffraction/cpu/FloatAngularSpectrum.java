@@ -69,8 +69,8 @@ public class FloatAngularSpectrum extends FloatPropagator {
 
         M2 = M / 2;
         N2 = N / 2;
-        endM = 2 * M2 - 1;
-        endN = 2 * N2 - 1;
+        endM = M2*2 - 1;
+        endN = N2*2 - 1;
         lambdaSq = lambda * lambda;
         dfx = 1 / (dx * M);
         dfy = 1 / (dy * N);
@@ -128,7 +128,7 @@ public class FloatAngularSpectrum extends FloatPropagator {
             int j2 = N - N2 + 1;
             float c1 = j2 * j2 * dfySq;
 
-            for (int i = 0; i < N2; i++) {
+            for (int i = 0; i < M2; i++) {
                 int i2 = M - M2 + 1;
                 float kernelPhase;
 
