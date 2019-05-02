@@ -148,10 +148,6 @@ public class MigualPhaseUnwrapper {
 
             //System.out.print("Pix A: " + pixelA.value + " - Pix B: " + pixelB.value + " - ");
 
-            if(i==100){
-                //System.out.println("Here");
-            }
-
             //PIXEL 2 is alone in its group
             //merge this pixel with PIXEL 1 group and find the number of 2 pi to add
             //to or subtract to unwrap it
@@ -163,8 +159,6 @@ public class MigualPhaseUnwrapper {
                     pixGroups[num_groups] = new LinkedList<>();
                     pixGroups[num_groups].add(pixPosA);
                     num_groups++;
-                } else {
-                    //System.out.println(edge.reliability + " - " + "New B");
                 }
 
                 pixelB.increment = pixelA.increment - edge.increment; //Update increment
@@ -258,25 +252,25 @@ public class MigualPhaseUnwrapper {
 
         calculateReliability(pixArray,width,height);
 
-        for(int i=0; i<width*height; i++){
+        /*for(int i=0; i<width*height; i++){
             //System.out.println(pixArray[i].reliability);
-        }
+        }*/
 
         horizontalEDGEs(pixArray,edgeArray,width,height);
         verticalEDGEs(pixArray,edgeArray,width,height);
 
         Arrays.sort(edgeArray);
-        for(int i=0; i<num_edges;i++){
+        /*for(int i=0; i<num_edges;i++){
             //float diff = pixArray[edgeArray[i].pixPosA].value - pixArray[edgeArray[i].pixPosB].value;
             //System.out.println(edgeArray[i].increment + " : " + edgeArray[i].reliability + "---" + diff);
-        }
+        }*/
 
         //gather PIXELs into groups
         gatherPIXELs(pixArray, edgeArray, width, height);
 
-        for(int i=0; i<width*height; i++){
+        /*for(int i=0; i<width*height; i++){
             //System.out.println(pixArray[i].increment);
-        }
+        }*/
 
         //unwrap the whole image
         unwrapImage(pixArray, width, height);

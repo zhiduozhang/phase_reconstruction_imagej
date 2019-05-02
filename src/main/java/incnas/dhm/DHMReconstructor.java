@@ -248,20 +248,6 @@ public class DHMReconstructor {
         fft2D.complexForward(imgFFT);
         ArrayUtils.complexShift(imgFFT);
 
-        float[][] fftCopy = new float[this.size_x][complex_size_y];
-
-        for(int i=0; i<this.size_x;i++){
-            fftCopy[i] = imgFFT[i].clone();
-        }
-
-        ArrayUtils.complexInverseShift(fftCopy);
-        ArrayUtils.complexShift(fftCopy);
-
-        for(int i=0; i<this.size_x;i++){
-            //System.out.println(Arrays.equals(fftCopy[i],imgFFT[i]));
-        }
-
-
         //FFT Log Magnitude
         float[][] magImgFFt = ArrayUtils.modulus(imgFFT);
         FloatProcessor floatProcessor = new FloatProcessor(magImgFFt);
@@ -479,6 +465,10 @@ public class DHMReconstructor {
         int new_displacement_x = (int) Math.round((this.size_x-bound_width)/2.0);
         int new_displacement_y = (int) Math.round((complex_size_y-bound_height_2)/2.0);
 
+        if(new_displacement_y % 2 ==1){
+            new_displacement_y++;
+        }
+
         for(int i=0; i<crop_width; i++){
             for(int j=0; j<crop_height_2; j++){
                 centered_complex_img[i+displacement_x][j+displacement_y] = cropped_area[i][j];
@@ -504,7 +494,7 @@ public class DHMReconstructor {
         abs_fp.log();
         ImagePlus abs_img = new ImagePlus("Abs FFT ", abs_fp);
 
-        this.fft_img = abs_img;
+        this.mask_img = abs_img;
 
         //return centered image
         return centered_complex_img;
@@ -536,17 +526,11 @@ public class DHMReconstructor {
     }
 
     private ImagePlus retrieve_phase(float[][] centered_fftImg){
-        for(int i=0; i<this.size_x; i++){
+        /*for(int i=0; i<this.size_x; i++){
             for(int j=0; j<this.size_y;j++){
                 //centered_fftImg[i][j] = (float) (centered_fftImg[i][j]*Math.PI/2);
             }
-        }
-
-        System.out.println(centered_fftImg.length);
-        System.out.println(centered_fftImg[0].length);
-
-        System.out.println(size_x);
-        System.out.println(size_y);
+        }*/
 
         //Propagate fft_img
         FloatAngularSpectrum as = new FloatAngularSpectrum(size_x,size_y,config.getLambda(),
@@ -556,15 +540,6 @@ public class DHMReconstructor {
         //IFFT
         FloatFFT_2D fft2D = new FloatFFT_2D(size_x,size_y);
         ArrayUtils.complexInverseShift(centered_fftImg);
-
-        float[][] abs = ArrayUtils.modulus(centered_fftImg);
-        FloatProcessor abs_fp = new FloatProcessor(abs);
-        abs_fp.add(1);
-        abs_fp.log();
-        ImagePlus abs_img = new ImagePlus("Abs FFT ", abs_fp);
-
-        this.mask_img = abs_img;
-
 
         fft2D.complexInverse(centered_fftImg,true);
 
@@ -594,9 +569,9 @@ public class DHMReconstructor {
         MigualPhaseUnwrapper migualPhaseUnwrapper = new MigualPhaseUnwrapper();
         float[][] migualPhase = migualPhaseUnwrapper.unwrap(wrapped_phase.getProcessor().getFloatArray(),wrapped_phase.getWidth(),wrapped_phase.getHeight());
 
-        for(float[] row : wrapped_phase.getProcessor().getFloatArray()) {
+        //for(float[] row : wrapped_phase.getProcessor().getFloatArray()) {
             //System.out.println(Arrays.toString(row));
-        }
+        //}
 
         ImagePlus unwrapped_phase = new ImagePlus("Unwrapped Phase", new FloatProcessor(migualPhase));
 

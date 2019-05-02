@@ -12,13 +12,13 @@
 		<relativePath />
 	</parent>
 
-	<groupId>com.mycompany</groupId>
+	<groupId>incnas.dhm</groupId>
 	<artifactId>DHMReconstructionPlugin</artifactId>
 	<version>0.2.7</version>
 
 	<name>DHM Reconstruction</name>
 	<description>Plugin for Digital Holographic Microscopy reconstruction</description>
-	<url>https://mycompany.com/imagej/gauss-filtering/</url>
+	<url>https://mycompany.com/imagej/DHM-Reconstruction/</url>
 	<inceptionYear>2017</inceptionYear>
 	<organization>
 		<name>My Company</name>

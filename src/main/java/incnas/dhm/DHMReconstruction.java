@@ -137,6 +137,7 @@ public class DHMReconstruction<T extends RealType<T>> implements Command {
 
         final ImgPlus image = currentData.getImgPlus();
         ImagePlus img = ImageJFunctions.wrap(image,"Input Image");
+
         if(img.isStack()){
             ImageStack fftStack = new ImageStack(img.getWidth(), img.getHeight());
             ImageStack maskStack = new ImageStack(img.getWidth(), img.getHeight());
